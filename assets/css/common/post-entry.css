@@ -41,6 +41,10 @@
     border-radius: var(--radius);
     transition: transform 0.1s;
     border: 1px solid var(--border);
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap);
+
 }
 
 .post-entry:active {
@@ -49,6 +53,9 @@
 
 .tag-entry .entry-cover {
     display: none;
+}
+
+.entry-content-order {
 }
 
 .entry-header h2 {
@@ -89,10 +96,12 @@
     justify-content: space-between;
 }
 
+
 .entry-cover {
     font-size: 14px;
     margin-bottom: var(--gap);
     text-align: center;
+    flex-shrink: 0;
 }
 
 .entry-cover img {
@@ -100,6 +109,15 @@
     width: 100%;
     height: auto;
 }
+
+.post-entry .entry-cover {
+    margin-bottom: 0px;
+}
+
+.post-entry .entry-cover img {
+    height: 150px;
+}
+
 
 .entry-cover a {
     color: var(--secondary);

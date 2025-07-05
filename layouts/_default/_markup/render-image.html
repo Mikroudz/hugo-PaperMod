@@ -1,3 +1,4 @@
+
 {{- $u := urls.Parse .Destination -}}
 {{- $src := $u.String -}}
 {{- if not $u.IsAbs -}}
@@ -12,9 +13,60 @@
     {{- end -}}
   {{- end -}}
 {{- end -}}
-{{- $attributes := merge .Attributes (dict "alt" .Text "src" $src "title" (.Title | transform.HTMLEscape) "loading" "lazy") -}}
+
+{{- /* Prepare style attribute */ -}}
+{{- $styleParts := slice -}}
+{{- $customWidth := "" -}}
+{{- $userStyles := "" -}}
+
+{{- /* 1. Get custom width if provided */ -}}
+{{- if .Attributes.width -}}
+  {{- $customWidth = .Attributes.width -}}
+  {{- $styleParts = $styleParts | append (printf "--post-img-width: %s;" $customWidth) -}}
+{{- end -}}
+
+{{- /* 2. Get custom styles if provided */ -}}
+{{- if .Attributes.style -}}
+  {{- $userStyles = .Attributes.style -}}
+  {{- $styleParts = $styleParts | append $userStyles -}}
+{{- end -}}
+
+{{- /* Combine style parts */ -}}
+{{- $finalStyle := delimit $styleParts " " | strings.TrimSpace -}}
+
+{{- /* Base attributes for the img tag */ -}}
+{{- $imgAttributes := dict
+      "src" $src
+      "alt" .Text
+      "loading" "lazy" -}}
+
+{{- /* Add title only if it's not empty */ -}}
+{{- if .Title -}}
+  {{- $imgAttributes = merge $imgAttributes (dict "title" (.Title | transform.HTMLEscape)) -}}
+{{- end -}}
+
+{{- /* Add the combined style if it's not empty */ -}}
+{{- if $finalStyle -}}
+  {{- $imgAttributes = merge $imgAttributes (dict "style" $finalStyle) -}}
+{{- end -}}
+
+{{- /*
+  Merge other user-provided attributes (like id, class),
+  EXCLUDING width and style as we've handled them.
+  The order of merge matters: $imgAttributes (our controlled ones)
+  will be overridden by $otherUserAttrs if there are clashes,
+  which is fine for id, class, etc.
+*/ -}}
+{{- $otherUserAttrs := dict -}}
+{{- range $k, $v := .Attributes -}}
+  {{- if and (ne $k "width") (ne $k "style") -}}
+    {{- $otherUserAttrs = merge $otherUserAttrs (dict $k $v) -}}
+  {{- end -}}
+{{- end -}}
+{{- $imgAttributes = merge $imgAttributes $otherUserAttrs -}}
+
 <img
-  {{- range $k, $v := $attributes -}}
+  {{- range $k, $v := $imgAttributes -}}
     {{- if $v -}}
       {{- printf " %s=%q" $k $v | safeHTMLAttr -}}
     {{- end -}}
